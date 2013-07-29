@@ -19,6 +19,15 @@ CCScene* HelloWorld::scene()
     return scene;
 }
 
+HelloWorld::~HelloWorld()
+{
+	m_texture_left->release();
+	m_texture_right->release();
+	m_texture_up->release();
+	m_texture_down->release();
+	m_texture_normal->release();
+}
+
 bool HelloWorld::init()
 {
     bool bRet = false;

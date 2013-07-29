@@ -20,6 +20,8 @@ public:
     // a selector callback
     void menuCloseCallback(CCObject* pSender);
 
+	~HelloWorld();
+
 	CCSprite *virtualpad;
 	CCPoint O;
 	float R;
