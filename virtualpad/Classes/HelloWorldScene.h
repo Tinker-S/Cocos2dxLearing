@@ -3,6 +3,8 @@
 
 #include "cocos2d.h"
 
+using namespace cocos2d;
+
 class HelloWorld : public cocos2d::CCLayer
 {
 public:
@@ -10,18 +12,23 @@ public:
     virtual bool init();  
 
     // there's no 'id' in cpp, so we recommand to return the exactly class pointer
-    static cocos2d::CCScene* scene();
+    static CCScene* scene();
 
-	virtual void ccTouchesBegan(cocos2d::CCSet *pTouches, cocos2d::CCEvent *pEvent);
-	virtual void ccTouchesEnded(cocos2d::CCSet *pTouches, cocos2d::CCEvent *pEvent);
+	virtual void ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent);
+	virtual void ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent);
     
     // a selector callback
     void menuCloseCallback(CCObject* pSender);
 
-	cocos2d::CCSprite *virtualpad;
-	cocos2d::CCPoint O;
+	CCSprite *virtualpad;
+	CCPoint O;
 	float R;
-	cocos2d::CCSprite *plane;
+	CCSprite *plane;
+	CCTexture2D *m_texture_normal;
+	CCTexture2D *m_texture_down;
+	CCTexture2D *m_texture_up;
+	CCTexture2D *m_texture_left;
+	CCTexture2D *m_texture_right;
 
 	bool isFlying;
 

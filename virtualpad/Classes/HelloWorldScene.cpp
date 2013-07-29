@@ -55,6 +55,17 @@ bool HelloWorld::init()
 		plane->setPosition(ccp(size.width/2, size.height/2));
 		this->addChild(plane, 0);
 
+		m_texture_normal = CCTextureCache::sharedTextureCache()->addImage("btn_normal.png");
+		m_texture_normal->retain();
+		m_texture_down = CCTextureCache::sharedTextureCache()->addImage("btn_down.png");
+		m_texture_down->retain();
+		m_texture_up = CCTextureCache::sharedTextureCache()->addImage("btn_up.png");
+		m_texture_up->retain();
+		m_texture_left = CCTextureCache::sharedTextureCache()->addImage("btn_left.png");
+		m_texture_left->retain();
+		m_texture_right = CCTextureCache::sharedTextureCache()->addImage("btn_right.png");
+		m_texture_right->retain();
+
 		virtualpad = CCSprite::create("btn_normal.png");
 		virtualpad->setOpacity(191);
 		virtualpad->setAnchorPoint(ccp(0,0));
@@ -124,21 +135,25 @@ void HelloWorld::ccTouchesBegan( CCSet *pTouches, CCEvent *pEvent )
 
 		if(speedX>speedY&&speedX+speedY>0)			//向右
 		{
+			virtualpad->setTexture(m_texture_right);
 			speedX=5;
 			speedY=0;
 		}
 		else if(speedX<speedY&&speedX+speedY>0)		//向上
 		{
+			virtualpad->setTexture(m_texture_up);
 			speedX=0;
 			speedY=5;
 		}
 		else if(speedX>speedY&&speedX+speedY<0)		//向下
 		{
+			virtualpad->setTexture(m_texture_down);
 			speedX=0;
 			speedY=-5;
 		}
 		else if(speedX<speedY&&speedX+speedY<0)		//向左
 		{
+			virtualpad->setTexture(m_texture_left);
 			speedX=-5;
 			speedY=0;
 		}
@@ -148,6 +163,7 @@ void HelloWorld::ccTouchesBegan( CCSet *pTouches, CCEvent *pEvent )
 //触摸结束的回调函数
 void HelloWorld::ccTouchesEnded( CCSet *pTouches, CCEvent *pEvent )
 {
+	virtualpad->setTexture(m_texture_normal);
 	isFlying=false;
 	speedX=speedY=0;
 }
