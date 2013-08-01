@@ -21,7 +21,8 @@ public:
 	void update(float dt);
 
 private:
-	cocos2d::CCProgressTimer *progresstime;
+	cocos2d::CCProgressTimer *progresstime1;
+	cocos2d::CCProgressTimer *progresstime2;
 };
 
 #endif  // __HELLOWORLD_SCENE_H__
