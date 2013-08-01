@@ -64,6 +64,7 @@ bool HelloWorld::init()
 		plane->setPosition(ccp(size.width/2, size.height/2));
 		this->addChild(plane, 0);
 
+		//创建虚拟按键
 		m_texture_normal = CCTextureCache::sharedTextureCache()->addImage("btn_normal.png");
 		m_texture_normal->retain();
 		m_texture_down = CCTextureCache::sharedTextureCache()->addImage("btn_down.png");
@@ -76,11 +77,12 @@ bool HelloWorld::init()
 		m_texture_right->retain();
 
 		virtualpad = CCSprite::create("btn_normal.png");
-		virtualpad->setOpacity(191);
+		virtualpad->setScale(0.5f);					//图片缩放比例为50%
+		virtualpad->setOpacity(191);					//透明度
 		virtualpad->setAnchorPoint(ccp(0,0));
 		virtualpad->setPosition(ccp(0,0));
 		//大圆半径
-		R=virtualpad->getContentSize().width/2;
+		R=virtualpad->getContentSize().width/4;		//由于图片已经缩放到50%，所以getContentSize要先除2
 		//中心点
 		O=ccp(R,R);
 		//添加进布景
