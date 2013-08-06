@@ -1,10 +1,10 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by CatapultShootingGame.RC
+// Used by CatapultShootingGameTest.RC
 //
 
 #define IDS_PROJNAME                100
-#define IDR_CATAPULTSHOOTINGGAME    100
+#define IDR_CATAPULTSHOOTINGGAMETEST    100
 
 #define ID_FILE_NEW_WINDOW            32771
 

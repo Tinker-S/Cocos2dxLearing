@@ -11,7 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F925D974-8145-45D7-A7C5-0C8AC6B06E24}</ProjectGuid>
+    <ProjectGuid>{10581841-9E69-4F2E-BE96-BDD38673810C}</ProjectGuid>
+    <ProjectName>CatapultShootingGameTest.win32</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -74,11 +75,11 @@
       <MkTypLibCompatible>false</MkTypLibCompatible>
       <TargetEnvironment>Win32</TargetEnvironment>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <HeaderFileName>CatapultShootingGame.h</HeaderFileName>
-      <InterfaceIdentifierFileName>CatapultShootingGame_i.c</InterfaceIdentifierFileName>
-      <ProxyFileName>CatapultShootingGame_p.c</ProxyFileName>
+      <HeaderFileName>CatapultShootingGameTest.h</HeaderFileName>
+      <InterfaceIdentifierFileName>CatapultShootingGameTest_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>CatapultShootingGameTest_p.c</ProxyFileName>
       <GenerateStublessProxies>true</GenerateStublessProxies>
-      <TypeLibraryName>$(IntDir)/CatapultShootingGame.tlb</TypeLibraryName>
+      <TypeLibraryName>$(IntDir)/CatapultShootingGameTest.tlb</TypeLibraryName>
       <DllDataFileName>
       </DllDataFileName>
     </Midl>
@@ -112,11 +113,11 @@
       <MkTypLibCompatible>false</MkTypLibCompatible>
       <TargetEnvironment>Win32</TargetEnvironment>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <HeaderFileName>CatapultShootingGame.h</HeaderFileName>
-      <InterfaceIdentifierFileName>CatapultShootingGame_i.c</InterfaceIdentifierFileName>
-      <ProxyFileName>CatapultShootingGame_p.c</ProxyFileName>
+      <HeaderFileName>CatapultShootingGameTest.h</HeaderFileName>
+      <InterfaceIdentifierFileName>CatapultShootingGameTest_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>CatapultShootingGameTest_p.c</ProxyFileName>
       <GenerateStublessProxies>true</GenerateStublessProxies>
-      <TypeLibraryName>$(IntDir)/CatapultShootingGame.tlb</TypeLibraryName>
+      <TypeLibraryName>$(IntDir)/CatapultShootingGameTest.tlb</TypeLibraryName>
       <DllDataFileName>
       </DllDataFileName>
     </Midl>
@@ -125,10 +126,10 @@
     <None Include="..\Resources\CloseNormal.png" />
     <None Include="..\Resources\CloseSelected.png" />
     <None Include="..\Resources\HelloWorld.png" />
-    <None Include="res\CatapultShootingGame.ico" />
+    <None Include="res\CatapultShootingGameTest.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="CatapultShootingGame.rc" />
+    <ResourceCompile Include="CatapultShootingGameTest.rc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Classes\AppDelegate.h" />
