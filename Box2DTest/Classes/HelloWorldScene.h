@@ -35,9 +35,7 @@ public:
 	void addSprite(CCPoint point);
 	void update(float dt);
 
-	CCSprite *sprite;
-
-	virtual bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent);
+	virtual void ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent);
 };
 
 #endif  // __HELLOWORLD_SCENE_H__

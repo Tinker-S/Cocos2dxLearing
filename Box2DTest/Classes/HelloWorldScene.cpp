@@ -30,7 +30,19 @@ bool HelloWorld::init()
     bool bRet = false;
     do 
     {
+        //////////////////////////////////////////////////////////////////////////
+        // super init first
+        //////////////////////////////////////////////////////////////////////////
+
         CC_BREAK_IF(! CCLayer::init());
+
+        //////////////////////////////////////////////////////////////////////////
+        // add your codes below...
+        //////////////////////////////////////////////////////////////////////////
+
+        // 1. Add a menu item with "X" image, which is clicked to quit the program.
+
+        // Create a "close" menu item with close icon, it's an auto release object.
         CCMenuItemImage *pCloseItem = CCMenuItemImage::create(
             "CloseNormal.png",
             "CloseSelected.png",
@@ -49,6 +61,7 @@ bool HelloWorld::init()
         // Add the menu to HelloWorld layer as a child layer.
         this->addChild(pMenu, 1);
 
+
         bRet = true;
     } while (0);
 
@@ -65,7 +78,6 @@ Box2DTest::Box2DTest()
 {
 	setTouchEnabled(true);
 	setAccelerometerEnabled(true);
-	CCDirector::sharedDirector()->getTouchDispatcher()->addTargetedDelegate(this,INT_MIN+1,true);
 
 	CCSize size = CCDirector::sharedDirector()->getWinSize();
 
@@ -115,7 +127,7 @@ void Box2DTest::addSprite(CCPoint point)
 {
 	CCSpriteBatchNode *batch = (CCSpriteBatchNode*)getChildByTag(1);
 
-	sprite = CCSprite::spriteWithTexture(batch->getTexture(),CCRectMake(0,0,32,32));
+	CCSprite *sprite = CCSprite::spriteWithTexture(batch->getTexture(),CCRectMake(0,0,32,32));
 	batch->addChild(sprite);
 
 	sprite->setPosition(ccp(point.x,point.y));
@@ -155,11 +167,17 @@ void Box2DTest::update(float dt)
 		}
 	}
 }
-
-bool Box2DTest::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent)
+void Box2DTest::ccTouchesEnded( CCSet *pTouches, CCEvent *pEvent )
 {
-	CCPoint location = pTouch->locationInView();
-	location = CCDirector::sharedDirector()->convertToGL(location);
-	addSprite(location);
-	return true;
+	CCSetIterator it;
+	CCTouch *touch;
+
+	for(it = pTouches->begin();it!=pTouches->end();it++)
+	{
+		touch = (CCTouch *)(*it);
+		CCPoint location = touch->locationInView();
+		location = CCDirector::sharedDirector()->convertToGL(location);
+
+		addSprite(location);
+	}
 }
