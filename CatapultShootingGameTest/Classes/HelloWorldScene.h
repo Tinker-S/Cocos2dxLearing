@@ -4,6 +4,7 @@
 #include "cocos2d.h"
 
 #include "Box2D/Box2D.h"
+#include "MyContackListener.h"
 
 #define FLOOR_HEIGHT 62.0f
 #define PTM_RATIO 32
@@ -41,12 +42,19 @@ private:
 	b2Body *m_bulletBody;
 	b2WeldJoint *m_bulletJoint;
 
+	MyContactListener *contactListener;
+
 	std::vector<b2Body *>m_bullets;
+	std::vector<b2Body *>targets;
+	std::vector<b2Body *>enemies;
 	int m_currentBullet;
 	void createBullets(int count);
 	bool attachBullet();
 	void resetGame();
 	bool m_releasingArm;
+	void resetBullet();
+	void createTarget();
+	void createTarget(char *imageName,cocos2d::CCPoint position,float rotation,bool isCircle,bool isStatic,bool isEnemy);
 };
 
 #endif  // __HELLOWORLD_SCENE_H__

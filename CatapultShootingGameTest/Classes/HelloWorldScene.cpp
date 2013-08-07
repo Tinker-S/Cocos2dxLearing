@@ -92,8 +92,8 @@ bool HelloWorld::init()
 		groundBox.Set(b2Vec2(0,screenSize.height/PTM_RATIO),b2Vec2(0,0));
 		m_groundBody->CreateFixture(&groundBox,0);
 		//右侧
-		groundBox.Set(b2Vec2(screenSize.width*2.0f/PTM_RATIO,screenSize.height/PTM_RATIO),b2Vec2(screenSize.width*2.0f/PTM_RATIO,0));
-		m_groundBody->CreateFixture(&groundBox,0);
+		//groundBox.Set(b2Vec2(screenSize.width*2.0f/PTM_RATIO,screenSize.height/PTM_RATIO),b2Vec2(screenSize.width*2.0f/PTM_RATIO,0));
+		//m_groundBody->CreateFixture(&groundBox,0);
 
 		//生成发射器臂
 		CCSprite *arm = CCSprite::spriteWithFile("catapult_arm.png");
@@ -128,6 +128,9 @@ bool HelloWorld::init()
 		CCDelayTime *delayAction = CCDelayTime::actionWithDuration(0.2f);
 		CCCallFunc *callSelectorAction = CCCallFunc::actionWithTarget(this,callfunc_selector(HelloWorld::resetGame));
 		this->runAction(CCSequence::actions(delayAction,callSelectorAction,NULL));
+
+		contactListener = new MyContactListener();
+		m_world->SetContactListener(contactListener);
 
 		schedule(schedule_selector(HelloWorld::tick));
 
@@ -172,6 +175,11 @@ void HelloWorld::tick(float dt)
 
 			m_world->DestroyJoint(m_bulletJoint);		//将橡子和投射器臂解绑。由于投射器要回复到原位，因此带动橡子移动，形成发射橡子的效果。
 			m_bulletJoint = NULL;
+
+			//发射橡子后延时5秒，再调用重新上膛的代码
+			CCDelayTime *delayAction = CCDelayTime::actionWithDuration(5.0f);
+			CCCallFunc *callSelectorAction = CCCallFunc::actionWithTarget(this,callfunc_selector(HelloWorld::resetBullet));
+			this->runAction(CCSequence::actions(delayAction,callSelectorAction,NULL));
 		}
 	}
 	if (m_bulletBody && m_bulletJoint == NULL)
@@ -187,6 +195,33 @@ void HelloWorld::tick(float dt)
 			this->setPosition(myPosition);
 		}
 	}
+	std::set<b2Body*>::iterator pos;
+	for (pos=contactListener->contacts.begin();pos!=contactListener->contacts.end();pos++)
+	{
+		b2Body *body = *pos;
+
+		CCNode *contactNode = (CCNode*)body->GetUserData();
+		removeChild(contactNode,true);
+		m_world->DestroyBody(body);
+
+		for (vector<b2Body*>::iterator iter = targets.begin();iter!=targets.end();iter++)
+		{
+			if (body==*iter)
+			{
+				targets.erase(iter);
+				break;
+			}
+		}
+		for(vector<b2Body*>::iterator iter = enemies.begin();iter!=enemies.end();iter++)
+		{
+			if (body==*iter)
+			{
+				enemies.erase(iter);
+				break;
+			}
+		}
+	}
+	contactListener->contacts.clear();
 }
 
 void HelloWorld::ccTouchesBegan(cocos2d::CCSet *pTouches, cocos2d::CCEvent *pEvent)
@@ -242,6 +277,7 @@ void HelloWorld::ccTouchesEnded(cocos2d::CCSet *pTouches, cocos2d::CCEvent *pEve
 	}
 }
 
+//加入子弹并放在发射器的左边
 void HelloWorld::createBullets(int count)
 {
 	m_currentBullet = 0;
@@ -307,4 +343,96 @@ void HelloWorld::resetGame()
 {
 	this->createBullets(4);
 	this->attachBullet();
+	this->createTarget(); 
+}
+
+void HelloWorld::createTarget(char *imageName,CCPoint position,float rotation,bool isCircle,bool isStatic,bool isEnemy) 
+{ 
+	CCSprite *sprite = CCSprite::spriteWithFile(imageName); 
+	this->addChild(sprite, 1); 
+
+	b2BodyDef bodyDef; 
+	bodyDef.type = isStatic ? b2_staticBody : b2_dynamicBody; 
+	bodyDef.position.Set((position.x+sprite->getContentSize().width/2.0f)/PTM_RATIO, 
+		(position.y+sprite->getContentSize().height/2.0f)/PTM_RATIO); 
+	bodyDef.angle = CC_DEGREES_TO_RADIANS(rotation); 
+	bodyDef.userData = sprite; 
+
+	b2Body *body = m_world->CreateBody(&bodyDef); 
+
+	b2FixtureDef boxDef; 
+	b2Fixture *fixtureTemp; 
+
+	if (isCircle){ 
+		b2CircleShape circle; 
+		boxDef.shape = &circle; 
+		circle.m_radius = sprite->getContentSize().width/2.0f/PTM_RATIO; 
+
+		fixtureTemp = body->CreateFixture(&circle, 0.5f); 
+	} 
+	else{ 
+		b2PolygonShape box; 
+		boxDef.shape = &box; 
+		box.SetAsBox(sprite->getContentSize().width/2.0f/PTM_RATIO, sprite->getContentSize().height/2.0f/PTM_RATIO); 
+		body->CreateFixture(&box, 0.5f);
+	} 
+	targets.push_back(body);
+
+	if (isEnemy){ 
+		fixtureTemp->SetUserData((void*)1);     //  boxDef.userData = (void*)1; 
+		enemies.push_back(body);
+	} 
+}
+
+void HelloWorld::createTarget() 
+{ 
+	targets.clear();
+	enemies.clear();
+
+	createTarget("brick_2.png", CCPointMake(675.0, FLOOR_HEIGHT), 0.0f, false, false, false); 
+	createTarget("brick_1.png", CCPointMake(741.0, FLOOR_HEIGHT), 0.0f, false, false, false); 
+	createTarget("brick_1.png", CCPointMake(741.0, FLOOR_HEIGHT+23.0), 0.0f, false, false, false); 
+	createTarget("brick_3.png", CCPointMake(673.0, FLOOR_HEIGHT+46.0), 0.0f, false, false, false); 
+	createTarget("brick_1.png", CCPointMake(707.0, FLOOR_HEIGHT+58.0), 0.0f, false, false, false); 
+	createTarget("brick_1.png", CCPointMake(707.0, FLOOR_HEIGHT+81.0), 0.0f, false, false, false); 
+
+	createTarget("head_dog.png", CCPointMake(702.0, FLOOR_HEIGHT), 0.0f, true, false, true); 
+	createTarget("head_cat.png", CCPointMake(680.0, FLOOR_HEIGHT+58.0), 0.0f, true, false, true); 
+	createTarget("head_dog.png", CCPointMake(740.0, FLOOR_HEIGHT+58.0), 0.0f, true, false, true); 
+
+	// 2 bricks at the right of the first block 
+	createTarget("brick_2.png", CCPointMake(770.0, FLOOR_HEIGHT), 0.0f, false, false, false); 
+	createTarget("brick_2.png", CCPointMake(770.0, FLOOR_HEIGHT+46.0), 0.0f, false, false, false); 
+
+	// The dog between the blocks 
+	createTarget("head_dog.png", CCPointMake(830.0, FLOOR_HEIGHT), 0.0f, true, false, true); 
+
+	// Second block 
+	createTarget("brick_platform.png", CCPointMake(839.0, FLOOR_HEIGHT), 0.0f, false, true, false); 
+	createTarget("brick_2.png", CCPointMake(854.0, FLOOR_HEIGHT+28.0), 0.0f, false, false, false); 
+	createTarget("brick_2.png", CCPointMake(854.0, FLOOR_HEIGHT+28.0+46.0), 0.0f, false, false, false); 
+	createTarget("head_cat.png", CCPointMake(881.0, FLOOR_HEIGHT+28.0), 0.0f, true, false, true); 
+	createTarget("brick_2.png", CCPointMake(909.0, FLOOR_HEIGHT+28.0), 0.0f, false, false, false); 
+	createTarget("brick_1.png", CCPointMake(909.0, FLOOR_HEIGHT+28.0+46.0), 0.0f, false, false, false); 
+	createTarget("brick_1.png", CCPointMake(909.0, FLOOR_HEIGHT+28.0+46.0+23.0), 0.0f, false, false, false); 
+	createTarget("brick_2.png", CCPointMake(882.0, FLOOR_HEIGHT+108.0), 90.0f, false, false, false);
+} 
+
+//释放子弹后重新上膛
+void HelloWorld::resetBullet()
+{
+	if (enemies.size()==0)
+	{
+		CCLog("Game over");
+	}
+	else if (attachBullet())
+	{
+		//如果还有子弹则将视角位置重置到场景左侧
+		CCAction *action = CCMoveTo::actionWithDuration(1.2f,CCPointZero);
+		runAction(action);
+	}
+	else
+	{
+		CCLog("Game failed");
+	}
 }
