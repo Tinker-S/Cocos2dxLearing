@@ -22,22 +22,21 @@ void MyContactListener::PostSolve(b2Contact* contact, const b2ContactImpulse* im
 	{
 		int count = contact->GetManifold()->pointCount;
 		float maxImpulse = 0.0f;
+		//取碰撞力的最大值
 		for (int i=0;i<count;i++)
 		{
 			maxImpulse = b2Max(maxImpulse,impulse->normalImpulses[i]);
 		}
+		//如果碰撞力大于1，则摧毁敌人
 		if(maxImpulse>1.0f)
 		{
-			printf("in maxImpulse\n");
 			if (isAEnemy)
 			{
 				contacts.insert(contact->GetFixtureA()->GetBody());
-				printf("contacts insert EnemyA\n");
 			}
 			if (isBEnemy)
 			{
 				contacts.insert(contact->GetFixtureB()->GetBody());
-				printf("contacts insert EnemyB\n");
 			}
 		}
 	}

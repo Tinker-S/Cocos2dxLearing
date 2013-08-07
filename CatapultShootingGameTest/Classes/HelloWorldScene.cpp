@@ -91,6 +91,7 @@ bool HelloWorld::init()
 		//左侧
 		groundBox.Set(b2Vec2(0,screenSize.height/PTM_RATIO),b2Vec2(0,0));
 		m_groundBody->CreateFixture(&groundBox,0);
+		//加入右侧边界后游戏里的物体不能掉出屏幕外，因此取消掉右侧的边界
 		//右侧
 		//groundBox.Set(b2Vec2(screenSize.width*2.0f/PTM_RATIO,screenSize.height/PTM_RATIO),b2Vec2(screenSize.width*2.0f/PTM_RATIO,0));
 		//m_groundBody->CreateFixture(&groundBox,0);
@@ -196,11 +197,13 @@ void HelloWorld::tick(float dt)
 		}
 	}
 	std::set<b2Body*>::iterator pos;
+	//contacts里包含的是需要消灭的敌人
 	for (pos=contactListener->contacts.begin();pos!=contactListener->contacts.end();pos++)
 	{
 		b2Body *body = *pos;
 
 		CCNode *contactNode = (CCNode*)body->GetUserData();
+		CCPoint position = contactNode->getPosition();
 		removeChild(contactNode,true);
 		m_world->DestroyBody(body);
 
@@ -220,6 +223,20 @@ void HelloWorld::tick(float dt)
 				break;
 			}
 		}
+
+		//消灭敌人后开启粒子效果，显示敌人消失的动画
+		CCParticleSun *explosion = CCParticleSun::create();
+		explosion->retain();
+		explosion->setTexture(CCTextureCache::sharedTextureCache()->addImage("fire.png"));
+		//explosion->initWithTotalParticles(200);		//Assertion failed!!!
+		explosion->setAutoRemoveOnFinish(true);
+		explosion->setStartSizeVar(10.0f);
+		explosion->setSpeed(70.0f);
+		explosion->setAnchorPoint(ccp(0.5f,0.5f));
+		explosion->setPosition(position);
+		explosion->setDuration(1.0f);
+		addChild(explosion,11);
+		explosion->release();
 	}
 	contactListener->contacts.clear();
 }
@@ -234,7 +251,7 @@ void HelloWorld::ccTouchesBegan(cocos2d::CCSet *pTouches, cocos2d::CCEvent *pEve
 	CCPoint location = touch->locationInView();
 	location = CCDirector::sharedDirector()->convertToGL(location);
 	b2Vec2 locationWorld = b2Vec2(location.x/PTM_RATIO,location.y/PTM_RATIO);
-
+	
 	if (locationWorld.x < m_armBody->GetWorldCenter().x+150.0f/PTM_RATIO)
 	{
 		//创建鼠标关节
@@ -341,11 +358,40 @@ bool HelloWorld::attachBullet()
 
 void HelloWorld::resetGame()
 {
+	if (m_bullets.size()!=0)
+	{
+		for (vector<b2Body*>::iterator bulletPointer = m_bullets.begin();bulletPointer!=m_bullets.end();bulletPointer++)
+		{
+			b2Body *bullet = (b2Body*)*bulletPointer;
+			CCNode *node = (CCNode*)bullet->GetUserData();
+			removeChild(node,true);
+			m_world->DestroyBody(bullet);
+		}
+		m_bullets.clear();
+	}
+	if (targets.size()!=0)
+	{
+		for (vector<b2Body*>::iterator targetPointer = targets.begin();targetPointer!=targets.end();targetPointer++)
+		{
+			b2Body *target = (b2Body*)*targetPointer;
+			CCNode *node = (CCNode*)target->GetUserData();
+			removeChild(node,true);
+			m_world->DestroyBody(target);
+		}
+		targets.clear();
+		enemies.clear();
+	}
 	this->createBullets(4);
 	this->attachBullet();
-	this->createTarget(); 
+	this->createTarget();
+
+	CCFiniteTimeAction *action1 = CCMoveTo::actionWithDuration(1.5f,ccp(-480.0f,0.0f));
+	CCDelayTime *action3 = CCDelayTime::actionWithDuration(1.0f);
+	CCFiniteTimeAction *action4 = CCMoveTo::actionWithDuration(1.5f,CCPointZero);
+	runAction(CCSequence::actions(action1,action3,action4,NULL));
 }
 
+//imageName：图片文件名称，position：物体放入的位置，rotation：物体初始转动的角度，isCircle：物体是否是圆形，isStatic：物体能否移动，isEnemy：是否是敌人
 void HelloWorld::createTarget(char *imageName,CCPoint position,float rotation,bool isCircle,bool isStatic,bool isEnemy) 
 { 
 	CCSprite *sprite = CCSprite::spriteWithFile(imageName); 
@@ -354,24 +400,23 @@ void HelloWorld::createTarget(char *imageName,CCPoint position,float rotation,bo
 	b2BodyDef bodyDef; 
 	bodyDef.type = isStatic ? b2_staticBody : b2_dynamicBody; 
 	bodyDef.position.Set((position.x+sprite->getContentSize().width/2.0f)/PTM_RATIO, 
-		(position.y+sprite->getContentSize().height/2.0f)/PTM_RATIO); 
-	bodyDef.angle = CC_DEGREES_TO_RADIANS(rotation); 
+		(position.y+sprite->getContentSize().height/2.0f)/PTM_RATIO);
+	bodyDef.angle = CC_DEGREES_TO_RADIANS(rotation);
 	bodyDef.userData = sprite; 
 
 	b2Body *body = m_world->CreateBody(&bodyDef); 
 
 	b2FixtureDef boxDef; 
-	b2Fixture *fixtureTemp; 
+	b2Fixture *fixtureTemp;
 
 	if (isCircle){ 
-		b2CircleShape circle; 
-		boxDef.shape = &circle; 
-		circle.m_radius = sprite->getContentSize().width/2.0f/PTM_RATIO; 
-
-		fixtureTemp = body->CreateFixture(&circle, 0.5f); 
+		b2CircleShape circle;
+		boxDef.shape = &circle;
+		circle.m_radius = sprite->getContentSize().width/2.0f/PTM_RATIO;
+		fixtureTemp = body->CreateFixture(&circle, 0.5f);
 	} 
 	else{ 
-		b2PolygonShape box; 
+		b2PolygonShape box;
 		boxDef.shape = &box; 
 		box.SetAsBox(sprite->getContentSize().width/2.0f/PTM_RATIO, sprite->getContentSize().height/2.0f/PTM_RATIO); 
 		body->CreateFixture(&box, 0.5f);
@@ -384,6 +429,7 @@ void HelloWorld::createTarget(char *imageName,CCPoint position,float rotation,bo
 	} 
 }
 
+//添加敌人和方块到游戏场景里
 void HelloWorld::createTarget() 
 { 
 	targets.clear();
@@ -423,7 +469,10 @@ void HelloWorld::resetBullet()
 {
 	if (enemies.size()==0)
 	{
-		CCLog("Game over");
+		//如果敌人都消灭了，则重启游戏
+		CCDelayTime *delayAction = CCDelayTime::actionWithDuration(2.0f);
+		CCCallFunc *callSelectorAction = CCCallFunc::actionWithTarget(this,callfunc_selector(HelloWorld::resetGame));
+		this->runAction(CCSequence::actions(delayAction,callSelectorAction,NULL));
 	}
 	else if (attachBullet())
 	{
@@ -433,6 +482,9 @@ void HelloWorld::resetBullet()
 	}
 	else
 	{
-		CCLog("Game failed");
+		//如果子弹用光了，则重启游戏
+		CCDelayTime *delayAction = CCDelayTime::actionWithDuration(2.0f);
+		CCCallFunc *callSelectorAction = CCCallFunc::actionWithTarget(this,callfunc_selector(HelloWorld::resetGame));
+		this->runAction(CCSequence::actions(delayAction,callSelectorAction,NULL));
 	}
 }
