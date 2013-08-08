@@ -40,6 +40,8 @@ bool HelloWorld::init()
 		CCSprite *sprite = CCSprite::spriteWithFile("bg.png");		//背景图
 		sprite->setAnchorPoint(CCPointZero);
 		this->addChild(sprite,-1);
+		bg_height=sprite->getContentSize().height;
+		bg_width=sprite->getContentSize().width;
 
 		sprite = CCSprite::spriteWithFile("catapult_base_2.png");	//投射器底部后面那块
 		sprite->setAnchorPoint(CCPointZero);
@@ -97,7 +99,7 @@ bool HelloWorld::init()
 		//m_groundBody->CreateFixture(&groundBox,0);
 
 		//生成发射器臂
-		CCSprite *arm = CCSprite::spriteWithFile("catapult_arm.png");
+		arm = CCSprite::spriteWithFile("catapult_arm.png");
 		this->addChild(arm,1);
 
 		b2BodyDef armBodyDef;
@@ -243,40 +245,68 @@ void HelloWorld::tick(float dt)
 
 void HelloWorld::ccTouchesBegan(cocos2d::CCSet *pTouches, cocos2d::CCEvent *pEvent)
 {
-	if (m_mouseJoint!=NULL)
-	{
-		return;
-	}
+
 	CCTouch *touch = (CCTouch *)pTouches->anyObject();
 	CCPoint location = touch->locationInView();
 	location = CCDirector::sharedDirector()->convertToGL(location);
 	b2Vec2 locationWorld = b2Vec2(location.x/PTM_RATIO,location.y/PTM_RATIO);
-	
-	if (locationWorld.x < m_armBody->GetWorldCenter().x+150.0f/PTM_RATIO)
-	{
-		//创建鼠标关节
-		b2MouseJointDef md;
-		md.bodyA = m_groundBody;		//一般为世界边界
-		md.bodyB = m_armBody;			//需要拖动的物体 
-		md.target = locationWorld;		//指定拖动的坐标
-		md.maxForce = 2000;				//给一个拖动的力
 
-		m_mouseJoint = (b2MouseJoint *)m_world->CreateJoint(&md);	//鼠标关节，用于拖动投射器臂
+	CCRect rect=arm->boundingBox();
+	if (rect.containsPoint(location))
+	{
+		if (m_mouseJoint!=NULL)
+		{
+			return;
+		}
+
+		if (locationWorld.x < m_armBody->GetWorldCenter().x+150.0f/PTM_RATIO)
+		{
+			//创建鼠标关节
+			b2MouseJointDef md;
+			md.bodyA = m_groundBody;		//一般为世界边界
+			md.bodyB = m_armBody;			//需要拖动的物体
+			md.target = locationWorld;		//指定拖动的坐标
+			md.maxForce = 2000;				//给一个拖动的力
+
+			m_mouseJoint = (b2MouseJoint *)m_world->CreateJoint(&md);	//鼠标关节，用于拖动投射器臂
+		}
 	}
+	else
+	{
+		startPoint=location;
+	}
+
 }
 
 void HelloWorld::ccTouchesMoved(cocos2d::CCSet *pTouches, cocos2d::CCEvent *pEvent)
 {
-	if (m_mouseJoint==NULL)
-	{
-		return;
-	}
 	CCTouch *touch = (CCTouch*)pTouches->anyObject();
 	CCPoint location = touch->locationInView();
 	location = CCDirector::sharedDirector()->convertToGL(location);
 	b2Vec2 locationWorld = b2Vec2(location.x/PTM_RATIO,location.y/PTM_RATIO);
-	//改变关节位置
-	m_mouseJoint->SetTarget(locationWorld);
+
+	if (m_mouseJoint!=NULL)
+	{
+		//改变关节位置
+		m_mouseJoint->SetTarget(locationWorld);
+	}
+	else
+	{
+		endPoint=location;
+		CCPoint scenePoint = this->getPosition();		//获取场景的位置
+
+		float moveposition = scenePoint.x+(endPoint.x-startPoint.x)/5.0f;
+		if (moveposition<-bg_width/2)		//场景移动距离不能超过背景图片的尺寸
+		{
+			moveposition=-bg_width/2;
+		}
+		if (moveposition>0)		//场景不能再向左边移动
+		{
+			moveposition=0;
+		}
+		this->setPosition(ccp(moveposition,scenePoint.y));
+	}
+
 }
 
 void HelloWorld::ccTouchesEnded(cocos2d::CCSet *pTouches, cocos2d::CCEvent *pEvent)
@@ -291,6 +321,25 @@ void HelloWorld::ccTouchesEnded(cocos2d::CCSet *pTouches, cocos2d::CCEvent *pEve
 
 		m_world->DestroyJoint(m_mouseJoint);
 		m_mouseJoint=NULL;
+	}
+	else
+	{
+		endPoint= (*(CCTouch*)(*pTouches->begin())).getLocationInView();
+
+		CCPoint scenePoint = this->getPosition();
+
+		float moveposition = scenePoint.x+(endPoint.x-startPoint.x)*3.0f;
+		if (moveposition<-bg_width/2)
+		{
+			moveposition=-bg_width/2;
+		}
+		if (moveposition>0)
+		{
+			moveposition=0;
+		}
+
+		CCFiniteTimeAction *action = CCMoveTo::actionWithDuration(0.2f,ccp(moveposition,scenePoint.y));
+		this->runAction(action);
 	}
 }
 
@@ -386,9 +435,9 @@ void HelloWorld::resetGame()
 	this->createTarget();
 
 	CCFiniteTimeAction *action1 = CCMoveTo::actionWithDuration(1.5f,ccp(-480.0f,0.0f));
-	CCDelayTime *action3 = CCDelayTime::actionWithDuration(1.0f);
-	CCFiniteTimeAction *action4 = CCMoveTo::actionWithDuration(1.5f,CCPointZero);
-	runAction(CCSequence::actions(action1,action3,action4,NULL));
+	CCDelayTime *action2 = CCDelayTime::actionWithDuration(1.0f);
+	CCFiniteTimeAction *action3 = CCMoveTo::actionWithDuration(1.5f,CCPointZero);
+	runAction(CCSequence::actions(action1,action2,action3,NULL));
 }
 
 //imageName：图片文件名称，position：物体放入的位置，rotation：物体初始转动的角度，isCircle：物体是否是圆形，isStatic：物体能否移动，isEnemy：是否是敌人

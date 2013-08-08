@@ -6,6 +6,8 @@
 #include "Box2D/Box2D.h"
 #include "MyContackListener.h"
 
+using namespace cocos2d;
+
 #define FLOOR_HEIGHT 62.0f
 #define PTM_RATIO 32
 
@@ -42,6 +44,12 @@ private:
 	b2Body *m_bulletBody;
 	b2WeldJoint *m_bulletJoint;
 
+	CCSprite *arm;
+	int bg_width;
+	int bg_height;
+	CCPoint startPoint;
+	CCPoint endPoint;
+
 	MyContactListener *contactListener;
 
 	std::vector<b2Body *>m_bullets;
@@ -54,7 +62,7 @@ private:
 	bool m_releasingArm;
 	void resetBullet();
 	void createTarget();
-	void createTarget(char *imageName,cocos2d::CCPoint position,float rotation,bool isCircle,bool isStatic,bool isEnemy);
+	void createTarget(char *imageName,CCPoint position,float rotation,bool isCircle,bool isStatic,bool isEnemy);
 };
 
 #endif  // __HELLOWORLD_SCENE_H__

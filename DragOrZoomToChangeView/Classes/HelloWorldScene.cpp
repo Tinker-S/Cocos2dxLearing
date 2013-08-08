@@ -2,8 +2,6 @@
 
 using namespace cocos2d;
 
-const double eps=1e-7;
-
 CCScene* HelloWorld::scene()
 {
 	CCScene * scene = NULL;
